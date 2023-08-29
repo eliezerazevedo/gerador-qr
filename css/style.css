@@ -1,0 +1,82 @@
+/* Estilos para a tela */
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        max-width: 10cm;
+        max-height: 5.5cm;
+        margin: 0 auto;
+        padding: 0px;
+        background-color: #fff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .no-print {
+        max-width: 10cm;
+        max-height: 5.5cm;
+        margin: 0 auto;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+
+    .qr-code-container {
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    .qr-code {
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    /* Estilos para a impressão */
+    @media print {
+        body * {
+            max-width: 10cm;
+            max-height: 5.5cm;
+            margin: 0;
+            padding: 0;
+        }
+        .no-print {
+            display: none;
+        }
+        .container, .container * {
+            display: block;
+        }
+    
+        .qr-code {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            background-color: transparent;
+            box-shadow: none;
+            margin: 0;
+            padding: 0;
+            page-break-after: always;
+        }
+    
+        .qr-code-text {
+            position: fixed;
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            bottom: 15%;
+            left: 30%;
+            background-color: transparent;
+            box-shadow: none;
+            margin: 0;
+            padding: 0;
+            page-break-after: always;
+        }
+    }    
