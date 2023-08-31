@@ -1,25 +1,39 @@
-<?php
-session_start();
-if (!isset($_SESSION['user_id'])) {
-    header("Location: index.php");
-    exit();
-}
-?>
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Registro de Usuário</title>
-    <!-- Incluir as referências do Bootstrap -->
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-</head>
+<?php include 'view/head.php'; ?>
 <body>
-<?php include 'menu.php'; ?>
+<?php include 'view/menu.php'; ?>
 <div class="container mt-5">
     <div class="col-md-6 offset-md-3">
-        <h2 class="mb-4">Registro de Usuário</h2>
+        <h2 class="mb-4">Cadastrar Usuário</h2>
         <?php
-        require_once('config.php');
-        $stmt = null; // Inicialização fora do escopo condicional
+        require_once '../config/config.php';
+        // Iniciar a sessão
+session_start();
+
+// Verificar se o usuário está autenticado e tem permissão "master"
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php'); // Redirecionar para a página de login se não estiver autenticado
+    exit;
+}
+
+$user_id = $_SESSION['user_id'];
+
+$stmt = $conn->prepare("SELECT permission FROM users WHERE id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$user = $result->fetch_assoc();
+$stmt->close();
+
+if ($user['permission'] !== 'master') {
+    header('Location: access_denied.php'); // Redirecionar se não tiver permissão de "master"
+    exit;
+}
+
+$stmt = $conn->prepare("SELECT id, username, permission FROM users");
+$stmt->execute();
+$result = $stmt->get_result();
 
         function displayAlert($message, $alertType) {
             echo '<div class="alert ' . $alertType . '">' . $message . '</div>';
@@ -62,11 +76,11 @@ if (!isset($_SESSION['user_id'])) {
         ?>
         <form method="POST">
             <div class="form-group">
-                <label for="username">Username:</label>
+                <label for="username">Usuário:</label>
                 <input type="text" class="form-control" id="username" name="username">
             </div>
             <div class="form-group">
-                <label for="password">Password:</label>
+                <label for="password">Senha:</label>
                 <input type="password" class="form-control" id="password" name="password">
             </div>
             <div class="form-group">

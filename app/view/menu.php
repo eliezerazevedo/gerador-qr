@@ -9,7 +9,10 @@
                 <a class="nav-link" href="dashboard.php">Início</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="register.php">Cadastrar usuário</a>
+                <a class="nav-link" href="register.php">Cadastrar Usuário</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="user.php">Lista de Usuários</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="#">Alterar Senha</a>

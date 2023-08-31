@@ -2,7 +2,7 @@
 $servername = "localhost";
 $username = "root";
 $password = "";
-$dbname = "pat";
+$dbname = "printmasternet_qrcode";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 

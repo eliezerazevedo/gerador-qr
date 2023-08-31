@@ -3,11 +3,11 @@ session_start();
 
 // Redirecionar para index.php se o usuário não estiver autenticado
 if (!isset($_SESSION['user_id'])) {
-    header("Location: index.php");
+    header("Location: /index.php");
     exit();
 }
 
-require_once 'config.php';
+require_once '../config/config.php';
 
 // Inicializar variáveis
 $input_usuario = "";
@@ -65,9 +65,7 @@ function generateQRCode($content) {
 
 <!DOCTYPE html>
 <html>
-<head>
-    <link rel="stylesheet" type="text/css" href="css/style.css">
-</head>
+<?php include 'view/head_print.php'; ?>
 <body>
 <div class="no-print">
     <button onclick="history.back()">Voltar</button>

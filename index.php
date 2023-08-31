@@ -1,10 +1,10 @@
 <?php
 session_start();
 if(isset($_SESSION['user_id'])) {
-    header("Location: dashboard.php");
+    header("Location: ./app/dashboard.php");
     exit();
 }
-require_once('config.php');
+require_once('./config/config.php');
 
 $error = '';
 
@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($user && password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['id'];
-            header("Location: dashboard.php");
+            header("Location: ./app/dashboard.php");
             exit();
         } else {
             $error = "Credenciais inválidas.";
@@ -34,11 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Login</title>
-    <!-- Inclua as referências do Bootstrap -->
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-</head>
+<?php include './app/view/head.php'; ?>
 <body>
     <div class="container mt-5">
         <div class="col-md-6 offset-md-3">
