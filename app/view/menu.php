@@ -15,9 +15,6 @@
                 <a class="nav-link" href="user.php">Lista de Usuários</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">Alterar Senha</a>
-            </li>
-            <li class="nav-item">
                 <a class="nav-link" href="logout.php">Sair</a>
             </li>
         </ul>
