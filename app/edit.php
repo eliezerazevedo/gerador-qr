@@ -4,6 +4,11 @@ require_once '../config/config.php';
 // Iniciar a sessão
 session_start();
 
+// Função para exibir alertas
+function displayAlert($message, $alertType) {
+    echo '<div class="alert ' . $alertType . '">' . $message . '</div>';
+}
+
 // Verificar se o usuário está autenticado e tem permissão "master"
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php'); // Redirecionar para a página de login se não estiver autenticado
@@ -12,21 +17,23 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-$stmt = $conn->prepare("SELECT permission FROM users WHERE id = ?");
+// Consultar informações do usuário e empresa
+$sql = "SELECT u.id, u.username, u.permission, u.empresa AS user_empresa, e.nome AS empresa_nome
+        FROM users u
+        LEFT JOIN empresa e ON u.empresa = e.id
+        WHERE u.id = ?";
+
+$stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 $stmt->close();
 
-if ($user['permission'] !== 'master') {
-    header('Location: access_denied.php'); // Redirecionar se não tiver permissão de "master"
+if (!$user) {
+    // O usuário não foi encontrado ou não pertence a uma empresa
+    header('Location: access_denied.php');
     exit;
-}
-
-// Função para exibir alertas
-function displayAlert($message, $alertType) {
-    echo '<div class="alert ' . $alertType . '">' . $message . '</div>';
 }
 
 $updateSuccessMessage = '';
@@ -37,26 +44,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
     $permission = $_POST['permission'];
     $password = $_POST['password'];
+    $newCompanyId = $_POST['empresa']; // Novo valor da empresa selecionada
 
     // Verificar se campos obrigatórios estão preenchidos
     if (empty($username) || empty($permission)) {
         $updateErrorMessage = 'Por favor, preencha todos os campos.';
     } else {
-        // Preparar a instrução SQL para atualização (incluindo senha, se fornecida)
-        $stmt = $conn->prepare("UPDATE users SET username = ?, permission = ?" . 
-                              (!empty($password) ? ", password = ?" : "") . " WHERE id = ?");
-        
+        // Preparar a instrução SQL para atualização
+        $sql = "UPDATE users SET username = ?, permission = ?, empresa = ?";
+        $params = [$username, $permission, $newCompanyId];
+
+        // Adicionar senha à consulta apenas se uma nova senha for fornecida
         if (!empty($password)) {
-            // Hash da senha se uma nova senha foi fornecida
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $stmt->bind_param("sssi", $username, $permission, $hashedPassword, $id);
-        } else {
-            // Sem hash da senha se nenhuma senha nova foi fornecida
-            $stmt->bind_param("ssi", $username, $permission, $id);
+            $sql .= ", password = ?";
+            $params[] = $hashedPassword;
         }
+
+        $sql .= " WHERE id = ?";
+        $params[] = $id;
+
+        $stmt = $conn->prepare($sql);
+
+        // Associe os parâmetros à instrução
+        $paramTypes = str_repeat('s', count($params)); // Determina o tipo de cada parâmetro
+        $stmt->bind_param($paramTypes, ...$params);
 
         if ($stmt->execute()) {
             $updateSuccessMessage = 'Usuário atualizado com sucesso!';
+            
+            // Atualize a variável $user para refletir a empresa atualizada
+            $user['user_empresa'] = $newCompanyId;
         } else {
             displayAlert('Erro ao atualizar usuário. Por favor, tente novamente.', 'alert-danger');
         }
@@ -64,28 +82,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
     }
 }
-
-$user = ["id" => "", "username" => "", "permission" => ""];
-
-if (isset($_GET['id'])) {
-    $id = $_GET['id'];
-
-    // Recuperar informações do usuário para edição
-    $stmt = $conn->prepare("SELECT id, username, permission FROM users WHERE id = ?");
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $user = $result->fetch_assoc();
-    $stmt->close();
-}
-
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
     <?php include 'view/head.php'; ?>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
     <?php include 'view/menu.php'; ?>
@@ -107,6 +109,22 @@ if (isset($_GET['id'])) {
                 <select class="form-control" id="permission" name="permission">
                     <option value="comum" <?= ($user['permission'] === 'comum') ? 'selected' : '' ?>>Comum</option>
                     <option value="master" <?= ($user['permission'] === 'master') ? 'selected' : '' ?>>Master</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="empresa">Empresa:</label>
+                <select class="form-control" id="empresa" name="empresa">
+                    <option value="">Selecione uma empresa</option>
+                    <?php
+                    $stmt_empresa = $conn->prepare("SELECT id, nome FROM empresa");
+                    $stmt_empresa->execute();
+                    $result_empresa = $stmt_empresa->get_result();
+                    while ($empresa = $result_empresa->fetch_assoc()) {
+                        $selected = ($empresa['id'] == $user['user_empresa']) ? 'selected' : '';
+                        echo '<option value="' . $empresa['id'] . '" ' . $selected . '>' . $empresa['nome'] . '</option>';
+                    }
+                    $stmt_empresa->close();
+                    ?>
                 </select>
             </div>
             <div class="form-group">

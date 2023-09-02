@@ -1,4 +1,7 @@
 <?php
+// Configura o tempo de vida da sessão para 1 hora (3600 segundos)
+ini_set('session.gc_maxlifetime', 3600);
+session_set_cookie_params(3600);
 session_start();
 if(isset($_SESSION['user_id'])) {
     header("Location: ./app/dashboard.php");
